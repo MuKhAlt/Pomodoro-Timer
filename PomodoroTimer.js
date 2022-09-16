@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Button } from "react-native";
 import {vibrate} from './utils';
+
 
 const workTime = 5;
 const breakTime = 3;
@@ -11,24 +12,31 @@ export default class PomodoroTimer extends React.Component {
 
 		this.state = {
 			timer: workTime,
-			workTimer: true
+			workTimer: true,
+			paused: true
 		}
   }
+
+	hideNavigation = () => {
+    hideNavigationBar();
+  };
 
 	componentDidMount() {
 		setInterval(this.decreaseTimer, 1000)
 	}
 
 	componentDidUpdate() {
-		if (this.state.timer === 0) {
+		if (this.state.timer === -1) {
 			this.flipTimer()
 		}
 	}
 
 	decreaseTimer = () => {
-		this.setState(prevState => ({
-			timer: prevState.timer - 1,
-		}))
+		if (this.state.paused === false) {
+			this.setState(prevState => ({
+				timer: prevState.timer - 1,
+			}))
+		}
 	}
 
 	flipTimer = () => {
@@ -39,12 +47,36 @@ export default class PomodoroTimer extends React.Component {
 		//vibrate()
 	}
 
+	startOrPause = () => {
+		this.setState(prevState => ({
+			paused: !prevState.paused
+		}))
+	}
+
+	reset = () => {
+		this.setState(prevState => ({
+			timer: prevState.workTimer ? workTime : breakTime,
+			paused: true
+		}))
+	}
+
   render() {
     return (
-      <View>
-        <Text style={styles.timer}>
+      <View style={[styles.container, {	backgroundColor: this.state.workTimer ? "#ADD8E6" : "#90EE90"}]}>
+				<Text style={styles.text}>
+					{this.state.workTimer ? "Work Time" : "Break Time"}
+				</Text>
+        <Text style={styles.text}>
 					{secondsToMinutesAndSeconds(this.state.timer)}
 				</Text>
+				<View style={styles.button}>
+					<View  style={styles.button}>
+						<Button title={this.state.paused ? "Start" : "Pause"} onPress={this.startOrPause} />
+					</View>
+					<View  style={styles.button}>
+						<Button title="Reset" onPress={this.reset} />
+					</View>
+				</View>
       </View>
     )
   }
@@ -64,7 +96,22 @@ function secondsToMinutesAndSeconds(s) {
 }
 
 const styles = StyleSheet.create({
-    timer: {
-        fontSize: 70
-    }
+	text: {
+		fontSize: 70,
+		textAlign: "center",
+		marginBottom: 20,
+	},
+
+	button: {
+		flexDirection: "row",
+		marginBottom: 20,
+		marginLeft: 10,
+		marginRight: 10,
+	},
+
+	container: {
+		flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
 })
